@@ -1,0 +1,10 @@
+build/
+*.apk
+*.idsig
+*.jks
+*.keystore
+fw/
+bak/
+.idea/
+*.iml
+.vscode/

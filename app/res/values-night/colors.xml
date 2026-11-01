@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#0E1117</color>
+    <color name="card">#1A1D29</color>
+    <color name="card_stroke">#2A2F45</color>
+    <color name="input_bg">#141722</color>
+    <color name="text_primary">#F2F5FA</color>
+    <color name="text_secondary">#A8B0C2</color>
+    <color name="text_muted">#8B93A7</color>
+    <color name="text_faint">#5A6178</color>
+    <color name="divider">#2A2F45</color>
+    <color name="accent">#3D8BFD</color>
+    <color name="accent_light">#2C7BE5</color>
+    <color name="ok">#4ADE80</color>
+    <color name="warn">#FBBF24</color>
+    <color name="err">#FF6B6B</color>
+    <color name="progress_track">#2A2F45</color>
+    <color name="widget_bg">#1A1D29</color>
+    <color name="widget_stroke">#2A2F45</color>
+    <color name="widget_text">#FFFFFF</color>
+    <color name="widget_sub">#98A2B8</color>
+    <color name="widget_faint">#5F6880</color>
+</resources>
