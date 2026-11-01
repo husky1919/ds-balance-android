@@ -300,15 +300,17 @@
                 android:textColorHint="@color/text_faint"
                 android:textSize="14sp" />
 
-            <TextView
+            <ImageView
                 android:id="@+id/eyeKey"
-                android:layout_width="52dp"
-                android:layout_height="52dp"
-                android:layout_gravity="end"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="4dp"
+                android:alpha="0.45"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:gravity="center"
-                android:text=""
-                android:textSize="1sp" />
+                android:contentDescription="查看密钥"
+                android:padding="12dp"
+                android:src="@drawable/ic_eye" />
         </FrameLayout>
 
         <FrameLayout
@@ -329,15 +331,17 @@
                 android:textColorHint="@color/text_faint"
                 android:textSize="14sp" />
 
-            <TextView
+            <ImageView
                 android:id="@+id/eyeToken"
-                android:layout_width="52dp"
-                android:layout_height="52dp"
-                android:layout_gravity="end"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="4dp"
+                android:alpha="0.45"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:gravity="center"
-                android:text=""
-                android:textSize="1sp" />
+                android:contentDescription="查看密钥"
+                android:padding="12dp"
+                android:src="@drawable/ic_eye" />
         </FrameLayout>
 
         <TextView

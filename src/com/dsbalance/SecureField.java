@@ -19,6 +19,16 @@ public class SecureField {
     private final String label;
     private final Handler ui = new Handler(Looper.getMainLooper());
 
+    public interface OnRevealListener {
+        void onRevealChanged(boolean revealed);
+    }
+
+    private OnRevealListener revealListener;
+
+    public void setOnRevealListener(OnRevealListener l) {
+        revealListener = l;
+    }
+
     private String plain;      // 内存中的真实值
     private boolean revealed;  // 是否处于揭示状态
     private Runnable hideTask;
@@ -86,6 +96,7 @@ public class SecureField {
     public void reveal(boolean on) {
         revealed = on;
         cancelHide();
+        if (revealListener != null) revealListener.onRevealChanged(on);
         if (plain == null || plain.isEmpty()) {
             edit.setText("");
             return;

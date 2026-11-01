@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +28,7 @@ public class MainActivity extends Activity {
     private ProgressBar pbCache;
 
     private SecureField keyField, tokenField;
+    private ImageView eyeKey, eyeToken;
 
     private final ExecutorService pool = Executors.newFixedThreadPool(2);
     private final Handler ui = new Handler(Looper.getMainLooper());
@@ -54,8 +56,16 @@ public class MainActivity extends Activity {
         keyField = new SecureField(this, (EditText) findViewById(R.id.etKey), "API Key");
         tokenField = new SecureField(this, (EditText) findViewById(R.id.etToken), "userToken");
 
+        eyeKey = findViewById(R.id.eyeKey);
+        eyeToken = findViewById(R.id.eyeToken);
+
         keyField.setPlain(BalanceApi.loadKey(this));
         tokenField.setPlain(BalanceApi.loadToken(this));
+
+        // 有值才显示眼睛；显示明文时换成闭眼
+        keyField.setOnRevealListener(r -> applyEye(eyeKey, keyField));
+        tokenField.setOnRevealListener(r -> applyEye(eyeToken, tokenField));
+        updateEyes();
 
         // 输入框本体：无值 -> 录入；有值 -> 点右侧查看
         ((EditText) findViewById(R.id.etKey)).setOnClickListener(v -> onFieldTap(keyField, false));
@@ -82,7 +92,7 @@ public class MainActivity extends Activity {
             tvStatus.setText("未设置密钥");
             tvHint.setText("点输入框即可录入密钥");
         } else {
-            tvHint.setText("点右侧可查看明文 · 长按可修改");
+            tvHint.setText("点眼睛图标查看明文 · 长按可修改");
         }
 
         findViewById(R.id.btnSave).setOnClickListener(v -> {
@@ -99,9 +109,10 @@ public class MainActivity extends Activity {
                 toast("保存失败: " + e.getMessage());
                 return;
             }
+            updateEyes();
             if (keyField.hasValue()) refreshBalance();
             if (tokenField.hasValue()) refreshUsage();
-            tvHint.setText("点右侧可查看明文 · 长按可修改");
+            tvHint.setText("点眼睛图标查看明文 · 长按可修改");
             toast("已保存");
         });
 
@@ -116,6 +127,34 @@ public class MainActivity extends Activity {
                 @Override public void onDenied(String reason) { toast(reason); }
             });
         });
+    }
+
+    /** 眼睛常显：无值更淡，有值明显 */
+    /** 图标始终可见：无值=加号，有值=眼睛，显示中=闭眼 */
+    private void updateEyes() {
+        applyEye(eyeKey, keyField);
+        applyEye(eyeToken, tokenField);
+    }
+
+    private void applyEye(ImageView iv, SecureField f) {
+        iv.setVisibility(View.VISIBLE);
+        if (!f.hasValue()) {
+            iv.setImageResource(R.drawable.ic_add);
+            iv.setAlpha(0.4f);
+            iv.setContentDescription("添加密钥");
+        } else if (f.isRevealed()) {
+            iv.setImageResource(R.drawable.ic_eye_off);
+            iv.setAlpha(1f);
+            iv.setContentDescription("隐藏密钥");
+        } else {
+            iv.setImageResource(R.drawable.ic_eye);
+            iv.setAlpha(0.5f);
+            iv.setContentDescription("查看密钥");
+        }
+    }
+
+    private void refreshEye(ImageView iv, SecureField f, boolean revealed) {
+        applyEye(iv, f);
     }
 
     /** 点输入框或右侧热区：没值就去录入，有值且点的是热区才显示明文 */
@@ -155,6 +194,7 @@ public class MainActivity extends Activity {
                 keyField.hasValue() ? R.id.etToken : R.id.etKey);
         target.requestFocus();
         target.setSelection(target.getText().length());
+        updateEyes();
         tvHint.setText("编辑中，完成后点“保存并查询”");
     }
 
@@ -177,6 +217,7 @@ public class MainActivity extends Activity {
         tvCacheDetail.setText("");
         pbCache.setProgress(0);
         tvUsageStatus.setText("需填写平台 token");
+        updateEyes();
         tvHint.setText("已清除，直接输入新的密钥");
         WidgetProvider.push(this, "—", "", "");
         toast("已清除");
