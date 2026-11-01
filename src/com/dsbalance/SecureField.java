@@ -31,8 +31,7 @@ public class SecureField {
         edit.setFocusable(false);
         edit.setFocusableInTouchMode(false);
         edit.setCursorVisible(false);
-        // 点击输入框本身不做事，只有右侧热区能触发（热区在 Activity 里接）
-        edit.setOnClickListener(v -> { /* noop */ });
+        // 点击行为由 Activity 统一接管
     }
 
     public String getPlain() {
@@ -76,7 +75,11 @@ public class SecureField {
     public void clear() {
         plain = null;
         revealed = false;
+        editing = false;
         cancelHide();
+        edit.setFocusable(false);
+        edit.setFocusableInTouchMode(false);
+        edit.setCursorVisible(false);
         edit.setText("");
     }
 

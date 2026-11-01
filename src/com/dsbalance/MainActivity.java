@@ -2,6 +2,7 @@ package com.dsbalance;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -56,11 +57,15 @@ public class MainActivity extends Activity {
         keyField.setPlain(BalanceApi.loadKey(this));
         tokenField.setPlain(BalanceApi.loadToken(this));
 
-        // 右侧隐藏热区：点击才验证
-        findViewById(R.id.eyeKey).setOnClickListener(v -> gatedReveal(keyField));
-        findViewById(R.id.eyeToken).setOnClickListener(v -> gatedReveal(tokenField));
+        // 输入框本体：无值 -> 录入；有值 -> 点右侧查看
+        ((EditText) findViewById(R.id.etKey)).setOnClickListener(v -> onFieldTap(keyField, false));
+        ((EditText) findViewById(R.id.etToken)).setOnClickListener(v -> onFieldTap(tokenField, false));
 
-        // 隐藏入口：长按“主题”标签更换密钥（需验证）
+        // 右侧热区：无值 -> 录入；有值 -> 验证后显示
+        findViewById(R.id.eyeKey).setOnClickListener(v -> onFieldTap(keyField, true));
+        findViewById(R.id.eyeToken).setOnClickListener(v -> onFieldTap(tokenField, true));
+
+        // 长按任意处：直接进入编辑（需验证）
         View.OnLongClickListener editEntry = v -> {
             Gate.request(this, new Gate.Callback() {
                 @Override public void onGranted() { enterEditMode(); }
@@ -75,9 +80,9 @@ public class MainActivity extends Activity {
         if (tokenField.hasValue()) refreshUsage();
         if (!keyField.hasValue() && !tokenField.hasValue()) {
             tvStatus.setText("未设置密钥");
-            tvHint.setText("长按输入框右侧空白处可录入密钥");
+            tvHint.setText("点输入框即可录入密钥");
         } else {
-            tvHint.setText("点击输入框右侧空白处可验证后查看");
+            tvHint.setText("点右侧可查看明文 · 长按可修改");
         }
 
         findViewById(R.id.btnSave).setOnClickListener(v -> {
@@ -96,7 +101,7 @@ public class MainActivity extends Activity {
             }
             if (keyField.hasValue()) refreshBalance();
             if (tokenField.hasValue()) refreshUsage();
-            tvHint.setText("点击输入框右侧空白处可验证后查看");
+            tvHint.setText("点右侧可查看明文 · 长按可修改");
             toast("已保存");
         });
 
@@ -111,6 +116,23 @@ public class MainActivity extends Activity {
                 @Override public void onDenied(String reason) { toast(reason); }
             });
         });
+    }
+
+    /** 点输入框或右侧热区：没值就去录入，有值且点的是热区才显示明文 */
+    private void onFieldTap(SecureField f, boolean isEye) {
+        if (f.isEditing()) return;   // 编辑态下不拦截
+        if (!f.hasValue()) {
+            Gate.request(this, new Gate.Callback() {
+                @Override public void onGranted() { enterEditMode(); }
+                @Override public void onDenied(String reason) { toast(reason); }
+            });
+            return;
+        }
+        if (!isEye) {
+            toast("点右侧可查看明文，长按可修改");
+            return;
+        }
+        gatedReveal(f);
     }
 
     private void gatedReveal(SecureField f) {
@@ -128,13 +150,20 @@ public class MainActivity extends Activity {
     private void enterEditMode() {
         keyField.beginEdit();
         tokenField.beginEdit();
+        // 焦点落到第一个空字段
+        EditText target = (EditText) findViewById(
+                keyField.hasValue() ? R.id.etToken : R.id.etKey);
+        target.requestFocus();
+        target.setSelection(target.getText().length());
         tvHint.setText("编辑中，完成后点“保存并查询”");
     }
 
     private void doClear() {
         BalanceApi.clearKey(this);
         BalanceApi.clearToken(this);
-        getSharedPreferences(BalanceApi.PREFS, 0).edit().clear().apply();
+        SharedPreferences p = getSharedPreferences(BalanceApi.PREFS, 0);
+        int theme = p.getInt("theme_mode", 0);   // 保留主题设置
+        p.edit().clear().putInt("theme_mode", theme).apply();
         keyField.clear();
         tokenField.clear();
         tvBalance.setText("—");
@@ -148,9 +177,10 @@ public class MainActivity extends Activity {
         tvCacheDetail.setText("");
         pbCache.setProgress(0);
         tvUsageStatus.setText("需填写平台 token");
-        tvHint.setText("长按输入框右侧空白处可录入密钥");
+        tvHint.setText("已清除，直接输入新的密钥");
         WidgetProvider.push(this, "—", "", "");
         toast("已清除");
+        enterEditMode();   // 刚验证过，直接进编辑，不用再验一次
     }
 
     @Override
